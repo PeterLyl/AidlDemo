@@ -5,13 +5,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.os.RemoteException;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
 import com.peter.aidldemo.aidl.IMyAidlInterface;
+import com.peter.aidldemo.aidl.IMyAidlInterfaceCallback;
 
 /**
  * @author Peter
@@ -25,11 +28,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mMyAIDL = IMyAidlInterface.Stub.asInterface(service);
+            try {
+                mMyAIDL.registerCallback(mCallback);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
             mMyAIDL = null;
+        }
+    };
+
+    private IMyAidlInterfaceCallback mCallback = new IMyAidlInterfaceCallback.Stub() {
+        @Override
+        public void actionPerformed(int actionId) throws RemoteException {
+            switch (actionId) {
+                case 0:
+                    Toast.makeText(MainActivity.this, "播放", Toast.LENGTH_SHORT).show();
+                    break;
+                case 1:
+                    Toast.makeText(MainActivity.this, "正在播放", Toast.LENGTH_SHORT).show();
+                    break;
+                case 2:
+                    Toast.makeText(MainActivity.this, "停止", Toast.LENGTH_SHORT).show();
+                    break;
+                default:
+                    break;
+
+            }
         }
     };
 
@@ -55,7 +83,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.btn_play:
                 try {
-                    Toast.makeText(this, "play", Toast.LENGTH_SHORT).show();
                     mMyAIDL.play();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -63,7 +90,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.btn_stop:
                 try {
-                    Toast.makeText(this, "stop", Toast.LENGTH_SHORT).show();
                     mMyAIDL.stop();
                 } catch (Exception e) {
                     e.printStackTrace();
